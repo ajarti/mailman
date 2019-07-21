@@ -1,0 +1,97 @@
+version: '3.7'
+
+services:
+
+  #PHP App
+  acceptorApp:
+    image: digitalocean.com/php
+    build:
+      context: ./acceptor
+      dockerfile: ../docker-builds/php/Dockerfile
+    container_name: acceptorApp
+    restart: unless-stopped
+    tty: true
+    depends_on:
+      - db
+      - acceptorServer
+    environment:
+      SERVICE_NAME: acceptorApp
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      - ./acceptor:/var/www
+      - ./docker-builds/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+
+  #PHP App
+  processorApp:
+    image: digitalocean.com/php
+    build:
+      context: ./processor
+      dockerfile: ../docker-builds/php/Dockerfile
+    container_name: processorApp
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: processorApp
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      - ./processor:/var/www
+      - ./docker-builds/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+
+  #Nginx Services
+  acceptorServer:
+    image: nginx:alpine
+#    container_name: acceptorServer
+    restart: unless-stopped
+    tty: true
+    expose:
+      - "80"
+      - "443"
+    volumes:
+      - ./acceptor:/var/www
+      - ./docker-builds/nginx/acceptorServer/:/etc/nginx/conf.d/
+
+
+#  processorServer:
+#    image: nginx:alpine
+#    container_name: processorServer
+#    restart: unless-stopped
+#    tty: true
+#    ports:
+#      - "9080:80"
+#      - "9443:443"
+#    volumes:
+#      - ./acceptor:/var/www
+#      - ./docker-builds/nginx/processorServer/:/etc/nginx/conf.d/
+
+
+  # Load balancer
+  load_balancer:
+    image: dockercloud/haproxy
+    links:
+      - acceptorServer
+    ports:
+      - "8080:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+
+  #MySQL Service
+  db:
+    image: mysql:5.7
+    container_name: db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "33060:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 53cret!@
+      MYSQL_DATABASE: mailman
+      MYSQL_USER: takeaway
+      MYSQL_PASSWORD: 53cret!@
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    volumes:
+      - ./docker-builds/mysql/my.cnf:/etc/mysql/my.cnf
