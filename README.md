@@ -70,4 +70,4 @@ there is just no time. I think even if I worked on it full time for two weeks it
 
 So it's with a very heavy heart that it is incomplete, with no failover, tests, micro commits or a CLI app.  I understand that this constitutes failure to deliver on the requirement and no doubt precludes me from the position.
 
-I have learn and inordinate amount and would like to thank you guys very much for the opportunity. It would be fantastic if you would take a look anyway and provide some feedback.
+I have learned an inordinate amount and would like to thank you guys very much for the opportunity. It would be fantastic if you would take a look anyway and provide some feedback.
