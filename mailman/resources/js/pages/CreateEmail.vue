@@ -177,16 +177,16 @@
 					]
 				},
 				message       : {
-					client_id  : '55555',
-					from_email : 'david.murray@ajarti.com',
-					from_name  : 'Dave Murray From',
-					html       : "<p>Test Message 1<br>\\n<strong>Test Message 1</strong></p>\\n<h6>Test Message 1</h6>\\n",
-					markdown   : "Test Message 1\\n**Test Message 1**\\n###### Test Message 1",
+					client_id  : '',
+					from_email : '',
+					from_name  : '',
+					html       : '',
+					markdown   : '',
 					priority   : 3,
-					subject    : 'Simple Subject',
-					text       : "Test Message 1\\n\\nTest Message 1\\nTest Message 1\\n",
-					to_email   : 'david.murray@ajarti.com',
-					to_name    : 'Dave Murray To',
+					subject    : '',
+					text       : '',
+					to_email   : '',
+					to_name    : '',
 				},
 				priorities    : [
 					{
