@@ -20,4 +20,10 @@ class Service extends Model
         'order'
     ];
 
+
+    public function events()
+    {
+        return $this->belongsToMany(Event::class)->withPivot('event');
+    }
+
 }

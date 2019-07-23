@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3'
 
 services:
 
@@ -6,92 +6,112 @@ services:
   acceptorApp:
     image: digitalocean.com/php
     build:
-      context: ./acceptor
-      dockerfile: ../docker-builds/php/Dockerfile
-    container_name: acceptorApp
+      context: ./mailman
+      dockerfile: ../docker-builds/acceptor/Dockerfile
     restart: unless-stopped
     tty: true
-    depends_on:
-      - db
-      - acceptorServer
     environment:
       SERVICE_NAME: acceptorApp
       SERVICE_TAGS: dev
     working_dir: /var/www
+    links:
+      - db
     volumes:
-      - ./acceptor:/var/www
-      - ./docker-builds/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./mailman:/var/www
+      - ./docker-builds/acceptor/local.ini:/usr/local/etc/acceptor/conf.d/local.ini
+    networks:
+      - app-network
 
   #PHP App
   processorApp:
     image: digitalocean.com/php
     build:
-      context: ./processor
-      dockerfile: ../docker-builds/php/Dockerfile
-    container_name: processorApp
+      context: ./mailman
+      dockerfile: ../docker-builds/processor/Dockerfile
     restart: unless-stopped
     tty: true
     environment:
       SERVICE_NAME: processorApp
       SERVICE_TAGS: dev
     working_dir: /var/www
+    command : bash -c "/usr/bin/supervisord -c /var/www/supervisord.conf"
+    links:
+      - db
     volumes:
-      - ./processor:/var/www
+      - ./mailman:/var/www
       - ./docker-builds/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - app-network
 
   #Nginx Services
   acceptorServer:
     image: nginx:alpine
-#    container_name: acceptorServer
     restart: unless-stopped
     tty: true
     expose:
       - "80"
       - "443"
     volumes:
-      - ./acceptor:/var/www
+      - ./mailman:/var/www
       - ./docker-builds/nginx/acceptorServer/:/etc/nginx/conf.d/
-
-
-#  processorServer:
-#    image: nginx:alpine
-#    container_name: processorServer
-#    restart: unless-stopped
-#    tty: true
-#    ports:
-#      - "9080:80"
-#      - "9443:443"
-#    volumes:
-#      - ./acceptor:/var/www
-#      - ./docker-builds/nginx/processorServer/:/etc/nginx/conf.d/
-
+    environment:
+      SERVICE_NAME: acceptorServer
+      SERVICE_TAGS: dev
+    networks:
+      - app-network
 
   # Load balancer
-  load_balancer:
+  loadBalancer:
+    container_name: loadBalancer
     image: dockercloud/haproxy
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: loadBalancer
+      SERVICE_TAGS: dev
     links:
       - acceptorServer
-    ports:
-      - "8080:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+
+
+  ngrok:
+    container_name: ngrok
+    image: wernight/ngrok
+    links:
+      - loadBalancer
+    environment:
+      - NGROK_REGION=eu
+      - NGROK_PORT=loadBalancer:80
+    ports:
+      - "4040:4040"
+    networks:
+      - app-network
 
 
   #MySQL Service
   db:
-    image: mysql:5.7
     container_name: db
+    image: mysql:5.7
     restart: unless-stopped
     tty: true
-    ports:
-      - "33060:3306"
     environment:
       MYSQL_ROOT_PASSWORD: 53cret!@
       MYSQL_DATABASE: mailman
       MYSQL_USER: takeaway
       MYSQL_PASSWORD: 53cret!@
-      SERVICE_NAME: app
+      SERVICE_NAME: db
       SERVICE_TAGS: dev
     volumes:
       - ./docker-builds/mysql/my.cnf:/etc/mysql/my.cnf
+    ports:
+      - "33060:3306"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

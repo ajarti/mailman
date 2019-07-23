@@ -18,4 +18,10 @@ class Event extends Model
         'name'
     ];
 
+
+    public function services()
+    {
+        return $this->belongsToMany(Service::class);
+    }
+
 }

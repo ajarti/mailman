@@ -1,32 +1,46 @@
 <?php
 
 /*
-|--------------------------------------------------------------------------
-| Application Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register all of the routes for an application.
-| It is a breeze. Simply tell Lumen the URIs it should respond to
-| and give it the Closure to call when that URI is requested.
-|
-*/
+ * Admin Routes - Loads the Vue Interface,
+ */
+$router->group(['prefix' => 'admin'], function () use ($router) {
+    $router->get('/', function () {
+        return view('app');
+    });
+});
+
+/*
+ * CORS Enabled Routes.
+ */
+$router->group(['prefix' => 'api', 'middleware' => 'cors'], function () use ($router) {
+
+    // The endpoint for processing webhook callbacks.
+    $router->post('/callback/{service}', 'WebhookController@process');
+
+    // The endpoint for receiving emails.
+    $router->post('/queue-mail', 'QueueMailController@store');
+
+    // List available services.
+    $router->get('/services', 'ServiceController@index');
+
+    // The endpoint to allow the client to update the services with the current ngrok tunnel.
+    $router->post('/webhook', 'WebhookController@update');
+
+});
 
 
 $router->get('/', function (\Illuminate\Http\Request $request) use ($router) {
 
-    $email = 'testmail-'.mt_rand(1000,10000);
-    $job   = new \App\Jobs\ProcessEmail($email);
-    try {
-        Illuminate\Support\Facades\Queue::push($job);
-    } catch (\Exception $e) {
-        dd($e);
-    }
 
-    return 'done';
+    return 'Done ..';
+
 });
 
+
+/*
+ * Can be called to show that the load balancing is working.
+ * The containers ID is returned.
+ */
 $router->get('/container-id', function () use ($router) {
-
     return exec('cat /proc/1/cpuset | cut -c9-');
-
 });

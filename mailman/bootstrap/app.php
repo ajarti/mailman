@@ -21,8 +21,9 @@ $app = new Laravel\Lumen\Application(
     dirname(__DIR__)
 );
 
- $app->withFacades();
- $app->withEloquent();
+$app->withFacades();
+$app->withEloquent();
+$app->configure('cors');
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +46,11 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
+$app->bind(
+    \App\Contracts\MailService::class,
+    \App\Services\Sendgrid::class
+);
+
 /*
 |--------------------------------------------------------------------------
 | Register Middleware
@@ -56,13 +62,14 @@ $app->singleton(
 |
 */
 
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
+$app->middleware([
+    \Barryvdh\Cors\HandleCors::class,
+]);
 
-// $app->routeMiddleware([
+$app->routeMiddleware([
 //     'auth' => App\Http\Middleware\Authenticate::class,
-// ]);
+    'cors' => \Barryvdh\Cors\HandleCors::class,
+]);
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +82,8 @@ $app->singleton(
 |
 */
 
+$app->register(Parsedown\Providers\ParsedownServiceProvider::class);
+$app->register(Barryvdh\Cors\ServiceProvider::class);
 // $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);

@@ -17,21 +17,22 @@ class CreateEmailsTable extends Migration
 
             // Fields
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('service_id');
-            $table->string('custom_id');
-            $table->string('message_id');
+            $table->string('client_id')->nullable()->default(null);
+            $table->unsignedBigInteger('service_id')->nullable()->default(null);
+            $table->string('custom_id')->nullable()->default(null);
+            $table->string('message_id')->nullable()->default(null);
             $table->string('to_email', 70);
             $table->string('to_name');
             $table->string('from_email', 70);
             $table->string('from_name');
             $table->string('subject');
-            $table->tinyInteger('priority');
+            $table->tinyInteger('priority')->default(3);
             $table->text('markdown')->nullable()->default(null);
             $table->text('text')->nullable()->default(null);
             $table->text('html')->nullable()->default(null);
 
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
 
             // Indexes
 

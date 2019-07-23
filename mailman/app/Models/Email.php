@@ -14,6 +14,22 @@ class Email extends Model
      *
      * @var array
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'service_id',
+        'custom_id',
+        'client_id',
+        'message_id',
+        'to_email',
+        'to_name',
+        'from_email',
+        'from_name',
+        'subject',
+        'priority',
+        'markdown',
+        'text',
+        'html',
+    ];
 
 }
+
+
